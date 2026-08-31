@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+
+# Frontend
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# Runtime state
+data/
+logs/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite3
+
+# Local tools and editors
+.superpowers/
+.DS_Store
+.idea/
+.vscode/
