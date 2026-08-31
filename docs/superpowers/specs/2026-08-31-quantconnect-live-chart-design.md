@@ -60,11 +60,11 @@
 
 职责：
 
-- 使用 QuantConnect 数据提供商订阅一个活动标的。
+- 使用 QuantConnect 数据提供商持续订阅默认的 `SPY` 与 `BTCUSD`，并在需要时增加最多一个当前搜索标的。
 - 股票使用 `Market.USA`、分钟数据、Raw normalization 和 extended market hours。
 - 加密货币使用 `Market.COINBASE`。
 - 接收 Atlas 通过 Live Command 发送的 JSON 控制命令。
-- 在切换时先验证并订阅新标的，成功后才移除旧订阅。
+- 在切换时先验证并订阅新标的，成功后才移除旧的非默认搜索标的；`SPY` 与 `BTCUSD` 常驻订阅不移除。
 - 对当前“标的 + 范围 + 粒度”执行一次同步 `History` 回填。
 - 将历史和后续数据写入固定的 Candlestick 与 Volume 序列。
 - 用自定义 runtime statistics 报告当前请求、标的、粒度、状态和错误。
@@ -122,12 +122,12 @@ IDLE → SWITCHING → BACKFILLING → LIVE
 2. Atlas 规范化输入并验证其是否属于支持范围。
 3. Atlas 生成唯一 `requestId`，把命令写入串行队列。
 4. Atlas 调用 QuantConnect `POST /live/commands/create`。
-5. 算法先添加新订阅，再进入 `BACKFILLING`。
+5. 若目标不是已常驻的 `SPY` 或 `BTCUSD`，算法先添加新订阅，再进入 `BACKFILLING`。
 6. 算法在 warm-up 结束后执行同步 `History`，使用历史 bar 自带的时间戳填充 Candlestick 与 Volume 序列。
 7. Atlas 轮询 runtime statistics；只有请求 ID、标的和粒度完全匹配且状态为 `LIVE` 才确认切换成功。
 8. Atlas 读取 `/live/chart/read`；接口返回 `loading` 时每 10 秒重试。
 9. Atlas 写入 SQLite 并将快照返回浏览器。
-10. 新订阅稳定后，算法移除旧订阅。
+10. 新订阅稳定后，算法只移除旧的非默认搜索标的；常驻的 `SPY` 与 `BTCUSD` 保留。
 
 同步 live `History` 通常会暂停算法约 5–10 秒，因此页面显示明确的加载状态，不承诺瞬时切换。浏览器在此期间继续显示最后一个成功图表。
 
